@@ -119,7 +119,7 @@ def build_analysis_prompt(data: dict) -> str:
 """
 
 _model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
+    model_name="gemini-2.0-flash",
     system_instruction=SYSTEM_PROMPT
 )
 
