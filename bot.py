@@ -42,7 +42,7 @@ from analyze import analyze
 
 # ─── 설정 ────────────────────────────────────────────────────
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
-PPT_SCRIPT     = Path(__file__).parent / "generate_ppt.js"
+PDF_SCRIPT     = Path(__file__).parent / "generate_pdf.js"
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
@@ -98,25 +98,25 @@ def parse_input(text: str) -> dict | None:
     return result
 
 
-# ─── PPT 생성 ────────────────────────────────────────────────
-def build_ppt(meta: dict, analysis_result: dict) -> str:
-    """JSON → Node.js generate_ppt.js → .pptx 경로 반환"""
+# ─── PDF 생성 ────────────────────────────────────────────────
+def build_pdf(meta: dict, analysis_result: dict) -> str:
+    """JSON → Node.js generate_pdf.js → .pdf 경로 반환"""
     tmpdir = tempfile.mkdtemp()
     data_path = os.path.join(tmpdir, "data.json")
-    ppt_path  = os.path.join(tmpdir, "result.pptx")
+    pdf_path  = os.path.join(tmpdir, "result.pdf")
 
     with open(data_path, "w", encoding="utf-8") as f:
         json.dump({"meta": meta, "analysis": analysis_result}, f, ensure_ascii=False, indent=2)
 
     result = subprocess.run(
-        ["node", str(PPT_SCRIPT), "--input", data_path, "--output", ppt_path],
+        ["node", str(PDF_SCRIPT), "--input", data_path, "--output", pdf_path],
         capture_output=True, text=True, timeout=60
     )
 
-    if result.returncode != 0 or not os.path.exists(ppt_path):
-        raise RuntimeError(f"PPT 생성 실패:\n{result.stderr}")
+    if result.returncode != 0 or not os.path.exists(pdf_path):
+        raise RuntimeError(f"PDF 생성 실패:\n{result.stderr}")
 
-    return ppt_path
+    return pdf_path
 
 
 # ─── 핸들러 ──────────────────────────────────────────────────
@@ -164,13 +164,13 @@ async def handle_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         log.info(f"분석 시작: {meta['name']}")
         result = analyze(meta)
 
-        # PPT 생성
-        log.info("PPT 생성 중...")
-        ppt_path = build_ppt(meta, result)
+        # PDF 생성
+        log.info("PDF 생성 중...")
+        pdf_path = build_pdf(meta, result)
 
         # 파일 전송
-        filename = f"분석지_{meta['name']}_{datetime.now().strftime('%Y%m%d')}.pptx"
-        with open(ppt_path, "rb") as f:
+        filename = f"분석지_{meta['name']}_{datetime.now().strftime('%Y%m%d')}.pdf"
+        with open(pdf_path, "rb") as f:
             await update.message.reply_document(
                 document=f,
                 filename=filename,
