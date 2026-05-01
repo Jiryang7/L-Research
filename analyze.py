@@ -1,12 +1,12 @@
 """
-analyze.py  —  Claude API 심리 분석 모듈
+analyze.py  —  Gemini API 심리 분석 모듈
 """
-import anthropic
+import google.generativeai as genai
 import json
 import re
 import os
 
-client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY", ""))
 
 SYSTEM_PROMPT = """당신은 MBTI, APTI(주성향+날개+서브), 직업, 고민/관심사를 기반으로
 내담자의 심리 성향을 심층 분석하는 전문 심리 코치입니다.
@@ -118,16 +118,15 @@ def build_analysis_prompt(data: dict) -> str:
 }}
 """
 
+_model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    system_instruction=SYSTEM_PROMPT
+)
+
 def analyze(data: dict) -> dict:
-    """Claude API 호출 후 JSON 파싱하여 반환"""
-    response = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=4096,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": build_analysis_prompt(data)}]
-    )
-    raw = response.content[0].text.strip()
-    # 혹시 코드블록이 포함된 경우 제거
+    """Gemini API 호출 후 JSON 파싱하여 반환"""
+    response = _model.generate_content(build_analysis_prompt(data))
+    raw = response.text.strip()
     raw = re.sub(r'^```(?:json)?\s*', '', raw)
     raw = re.sub(r'\s*```$', '', raw)
     return json.loads(raw)
