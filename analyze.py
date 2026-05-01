@@ -6,7 +6,7 @@ import json
 import re
 import os
 
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY", ""))
+genai.configure(api_key=os.environ.get("GOOGLE_API_KEY", ""))
 
 SYSTEM_PROMPT = """당신은 MBTI, APTI(주성향+날개+서브), 직업, 고민/관심사를 기반으로
 내담자의 심리 성향을 심층 분석하는 전문 심리 코치입니다.
