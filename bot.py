@@ -117,7 +117,7 @@ def build_ppt(meta: dict, analysis_result: dict) -> str:
 # ─── 핸들러 ──────────────────────────────────────────────────
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     msg = (
-        "👋 안녕하세요! 심리 분석 봇입니다.\n\n"
+        "👋 안녕하세요! L사 연구팀입니다.\n\n"
         "아래 양식으로 정보를 보내주세요:\n\n"
         "```\n"
         "이름: 홍길동\n"
