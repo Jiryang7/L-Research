@@ -50,44 +50,49 @@ log = logging.getLogger(__name__)
 # ─── 입력 파싱 ───────────────────────────────────────────────
 def parse_input(text: str) -> dict | None:
     """텔레그램 메시지를 key:value 딕셔너리로 파싱"""
-    field_map = {
-        "이름":           "name",
-        "나이":           "age",
-        "성별":           "gender",
-        "직업":           "job",
-        "mbti":           "mbti",
-        "MBTI":           "mbti",
-        "상황":           "situation",
-        "apti 주성향":    "main",
-        "APTI 주성향":    "main",
-        "날개":           "wing",
-        "서브":           "sub",
-        **{f"점수{c}": f"score_{c}" for c in "ABCDEFGHI"},
-        **{f"점수{c.lower()}": f"score_{c}" for c in "ABCDEFGHI"},
-    }
     result = {}
+    score_map = {}  # {1: 점수, 2: 점수, ...}
+
     for line in text.strip().splitlines():
         if ":" not in line:
             continue
         key, _, val = line.partition(":")
         key = key.strip()
         val = val.strip()
-        mapped = field_map.get(key) or field_map.get(key.upper()) or field_map.get(key.lower())
-        if mapped:
-            result[mapped] = val
 
-    # 필수 필드 확인
-    required = {"name", "age", "gender", "job", "main"}
-    if not required.issubset(result.keys()):
+        k = key.lower()
+        if k == "이름":       result["name"] = val
+        elif k == "나이":     result["age"] = val
+        elif k == "성별":     result["gender"] = val
+        elif k == "직업":     result["job"] = val
+        elif k == "mbti":     result["mbti"] = val
+        elif k == "상황":     result["situation"] = val
+        else:
+            m = re.match(r'^([1-9])번$', key)
+            if m:
+                score_map[int(m.group(1))] = int(val or 0)
+
+    required = {"name", "age", "gender", "job"}
+    if not required.issubset(result.keys()) or len(score_map) < 9:
         return None
 
-    # 점수 딕셔너리 조립
-    result["scores"] = {
-        c: int(result.pop(f"score_{c}", 0) or 0)
-        for c in "ABCDEFGHI"
-    }
+    # 주성향 / 날개 / 서브 자동 계산
+    ranked = sorted(score_map.items(), key=lambda x: x[1], reverse=True)
+    main_n = ranked[0][0]
+    sub_n  = ranked[1][0]
+    left   = 9 if main_n == 1 else main_n - 1
+    right  = 1 if main_n == 9 else main_n + 1
+    wing_n = left if score_map[left] >= score_map[right] else right
 
-    # 날짜
+    result["main"] = f"{main_n}번"
+    result["wing"] = f"{wing_n}w"
+    result["sub"]  = f"{sub_n}번"
+
+    # 점수 딕셔너리 (A=1번 … I=9번)
+    result["scores"] = {
+        c: score_map.get(i + 1, 0)
+        for i, c in enumerate("ABCDEFGHI")
+    }
     result["date"] = datetime.now().strftime("%b %d, %Y").upper()
 
     return result
@@ -127,15 +132,16 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         "MBTI: INFJ\n"
         "상황: 번아웃 이후 방향을 잃은 상태\n"
         "APTI\n"
-"1번: 41\n"
-"2번: 20\n"
-"3번: 23\n"
-"4번: 34\n"
-"5번: 33\n"
-"6번: 15\n"
-"7번: 31\n"
-"8번: 36\n"
-"9번: 29\n"
+        "1번: 41\n"
+        "2번: 20\n"
+        "3번: 23\n"
+        "4번: 34\n"
+        "5번: 33\n"
+        "6번: 15\n"
+        "7번: 31\n"
+        "8번: 36\n"
+        "9번: 29\n"
+        "```"
     )
     await update.message.reply_text(msg, parse_mode="Markdown")
 
