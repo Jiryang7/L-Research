@@ -98,8 +98,8 @@ function buildSlide1(pres) {
   // 레이더 차트 (APTI 점수)
   const scores = meta.scores || {};
   const labels = ["1번","2번","3번","4번","5번","6번","7번","8번","9번"];
-  const scoreKeys = [1,2,3,4,5,6,7,8,9];
-  const values = scoreKeys.map(k => scores[k] || 0);
+  const scoreLetters = ["A","B","C","D","E","F","G","H","I"];
+  const values = scoreLetters.map(k => scores[k] || 0);
 
   if (values.some(v => v > 0)) {
     s.addChart(pres.charts.RADAR, [{
@@ -125,8 +125,8 @@ function buildSlide1(pres) {
   const scoreRows = [
     [{ text: "유형", options: { bold: true, fill: { color: C.tableHdr }, color: C.textMain } },
      { text: "점수", options: { bold: true, fill: { color: C.tableHdr }, color: C.textMain } }],
-    ...scoreKeys.map((k, i) => [
-      { text: `${k}번`, options: { bold: true, fill: { color: i % 2 === 0 ? C.tableRow1 : C.tableRow2 }, color: C.textMain } },
+    ...scoreLetters.map((k, i) => [
+      { text: `${i+1}번`, options: { bold: true, fill: { color: i % 2 === 0 ? C.tableRow1 : C.tableRow2 }, color: C.textMain } },
       { text: String(values[i] || "-"), options: { fill: { color: i % 2 === 0 ? C.tableRow1 : C.tableRow2 } } }
     ])
   ];
@@ -144,11 +144,11 @@ function buildSlide1(pres) {
   const checks = analysis.self_check || [];
   const checkItems = checks.map((q, i) => ({
     text: q,
-    options: { bullet: true, breakLine: i < checks.length - 1, fontSize: 9, paraSpaceAfter: 8 }
+    options: { bullet: true, breakLine: i < checks.length - 1, fontSize: 11, paraSpaceAfter: 8 }
   }));
   s.addText(checkItems, {
     x: 3.95, y: TOP + 0.3, w: 3.35, h: 2.1,
-    fontFace: FONT, fontSize: 9,
+    fontFace: FONT, fontSize: 11,
     color: C.textMain, valign: "top",
     wrap: true, margin: [4, 4, 4, 4]
   });
@@ -160,26 +160,29 @@ function buildSlide1(pres) {
   const PT_Y = TOP + 2.62;
   const rowLabels = ["핵심 특성", "행동/사고 패턴", "대인관계/감정", "도전/보완점"];
   const keyMap    = ["핵심특성",  "행동사고패턴",    "대인관계감정",  "도전보완점"];
-  const mainLabel = `MAIN (${meta.main_type || "?"}번)`;
-  const wingLabel = `WING (${meta.wing_type || "?"}번)`;
-  const subLabel  = `SUB  (${meta.sub_type  || "?"}번)`;
+  const mainNum   = (meta.main || "").replace("번", "");
+  const wingNum   = (meta.wing || "").replace("w", "");
+  const subNum    = (meta.sub  || "").replace("번", "");
+  const mainLabel = `MAIN (${mainNum}번)`;
+  const wingLabel = `WING (${wingNum}번)`;
+  const subLabel  = `SUB  (${subNum}번)`;
 
   const tableData = [
     [
-      { text: "PERSONALITY", options: { bold: true, fill: { color: C.navyDark }, color: C.white, fontSize: 9 } },
-      { text: mainLabel,     options: { bold: true, fill: { color: C.navyDark }, color: C.white, fontSize: 9 } },
-      { text: wingLabel,     options: { bold: true, fill: { color: C.navyDark }, color: C.white, fontSize: 9 } },
-      { text: subLabel,      options: { bold: true, fill: { color: C.navyDark }, color: C.white, fontSize: 9 } }
+      { text: "PERSONALITY", options: { bold: true, fill: { color: C.navyDark }, color: C.white, fontSize: 11 } },
+      { text: mainLabel,     options: { bold: true, fill: { color: C.navyDark }, color: C.white, fontSize: 11 } },
+      { text: wingLabel,     options: { bold: true, fill: { color: C.navyDark }, color: C.white, fontSize: 11 } },
+      { text: subLabel,      options: { bold: true, fill: { color: C.navyDark }, color: C.white, fontSize: 11 } }
     ],
     ...rowLabels.map((label, i) => {
       const key = keyMap[i];
       const row = analysis.apti_table?.[key] || {};
       const bg = i % 2 === 0 ? C.tableRow1 : C.tableRow2;
       return [
-        { text: label,        options: { bold: true, fill: { color: C.tableHdr }, color: C.textMain, fontSize: 8 } },
-        { text: row.main || "", options: { fill: { color: bg }, fontSize: 8, color: C.textMain } },
-        { text: row.wing || "", options: { fill: { color: bg }, fontSize: 8, color: C.textMain } },
-        { text: row.sub  || "", options: { fill: { color: bg }, fontSize: 8, color: C.textMain } }
+        { text: label,        options: { bold: true, fill: { color: C.tableHdr }, color: C.textMain, fontSize: 10 } },
+        { text: row.main || "", options: { fill: { color: bg }, fontSize: 10, color: C.textMain } },
+        { text: row.wing || "", options: { fill: { color: bg }, fontSize: 10, color: C.textMain } },
+        { text: row.sub  || "", options: { fill: { color: bg }, fontSize: 10, color: C.textMain } }
       ];
     })
   ];
@@ -218,15 +221,15 @@ function buildSlide1(pres) {
     slide.addShape("rect", { x, y, w: cardW, h: 1.55, fill: { color: bg }, line: { color: C.border, width: 0.5 } });
     slide.addText(title, {
       x: x + 0.06, y: y + 0.04, w: cardW - 0.12, h: 0.22,
-      fontSize: 8, fontFace: FONT, bold: true,
+      fontSize: 10, fontFace: FONT, bold: true,
       color: titleColor, align: "left", valign: "middle", margin: 0
     });
     const bullets = (items || []).map((t, i) => ({
-      text: t, options: { bullet: true, breakLine: i < items.length - 1, fontSize: 8, paraSpaceAfter: 3 }
+      text: t, options: { bullet: true, breakLine: i < items.length - 1, fontSize: 10, paraSpaceAfter: 3 }
     }));
     slide.addText(bullets, {
       x: x + 0.06, y: y + 0.28, w: cardW - 0.12, h: 1.22,
-      fontFace: FONT, fontSize: 8, color: C.textMain,
+      fontFace: FONT, fontSize: 10, color: C.textMain,
       valign: "top", wrap: true, margin: 0
     });
   }
@@ -294,7 +297,7 @@ function buildSlide2(pres) {
     s.addShape("rect", { x: 0.15, y: cy, w: 0.06, h: 0.72, fill: { color: C.accent } });
     s.addText(`"${comment}"`, {
       x: 0.3, y: cy, w: W - 0.45, h: 0.72,
-      fontSize: 10, fontFace: FONT, italic: true,
+      fontSize: 12, fontFace: FONT, italic: true,
       color: C.textMain, valign: "middle", wrap: true,
       margin: [0, 8, 0, 4]
     });
