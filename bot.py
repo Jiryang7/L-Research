@@ -8,19 +8,16 @@ bot.py  —  텔레그램 봇 메인
 성별: 여
 직업: 코치
 MBTI: INFJ
-상황: 번아웃 이후 방향성을 잃은 상태
-APTI 주성향: 1번
-날개: 9w
-서브: 5번
-점수A: 29
-점수B: 20
-점수C: 23
-점수D: 34
-점수E: 33
-점수F: 15
-점수G: 31
-점수H: 36
-점수I: 41
+상황: 번아웃 이후 방향을 잃은 상태
+점수A: 20   ← 에니어 2번
+점수B: 23   ← 에니어 3번
+점수C: 34   ← 에니어 4번
+점수D: 33   ← 에니어 5번
+점수E: 15   ← 에니어 6번
+점수F: 31   ← 에니어 7번
+점수G: 36   ← 에니어 8번
+점수H: 29   ← 에니어 9번
+점수I: 41   ← 에니어 1번
 """
 
 import os
@@ -47,11 +44,17 @@ PDF_SCRIPT     = Path(__file__).parent / "generate_pdf.js"
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
+# 점수A=에니어2번, 점수B=에니어3번, ..., 점수I=에니어1번
+_LETTER_TO_ENNEAGRAM = {
+    c: (i + 1) % 9 + 1
+    for i, c in enumerate("ABCDEFGHI")
+}
+
 # ─── 입력 파싱 ───────────────────────────────────────────────
 def parse_input(text: str) -> dict | None:
     """텔레그램 메시지를 key:value 딕셔너리로 파싱"""
     result = {}
-    score_map = {}  # {1: 점수, 2: 점수, ...}
+    score_map = {}  # {에니어번호: 점수}
 
     for line in text.strip().splitlines():
         if ":" not in line:
@@ -68,9 +71,11 @@ def parse_input(text: str) -> dict | None:
         elif k == "mbti":     result["mbti"] = val
         elif k == "상황":     result["situation"] = val
         else:
-            m = re.match(r'^([1-9])번$', key)
+            m = re.match(r'^점수([A-Ia-i])$', key)
             if m:
-                score_map[int(m.group(1))] = int(val or 0)
+                letter = m.group(1).upper()
+                enneagram_num = _LETTER_TO_ENNEAGRAM[letter]
+                score_map[enneagram_num] = int(val or 0)
 
     required = {"name", "age", "gender", "job"}
     if not required.issubset(result.keys()) or len(score_map) < 9:
@@ -88,10 +93,10 @@ def parse_input(text: str) -> dict | None:
     result["wing"] = f"{wing_n}w"
     result["sub"]  = f"{sub_n}번"
 
-    # 점수 딕셔너리 (A=1번 … I=9번)
+    # 점수 딕셔너리 (A=에니어2번 … I=에니어1번)
     result["scores"] = {
-        c: score_map.get(i + 1, 0)
-        for i, c in enumerate("ABCDEFGHI")
+        c: score_map.get(_LETTER_TO_ENNEAGRAM[c], 0)
+        for c in "ABCDEFGHI"
     }
     result["date"] = datetime.now().strftime("%b %d, %Y").upper()
 
@@ -131,16 +136,15 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         "직업: 코치\n"
         "MBTI: INFJ\n"
         "상황: 번아웃 이후 방향을 잃은 상태\n"
-        "APTI\n"
-        "1번: 41\n"
-        "2번: 20\n"
-        "3번: 23\n"
-        "4번: 34\n"
-        "5번: 33\n"
-        "6번: 15\n"
-        "7번: 31\n"
-        "8번: 36\n"
-        "9번: 29\n"
+        "점수A: 20\n"
+        "점수B: 23\n"
+        "점수C: 34\n"
+        "점수D: 33\n"
+        "점수E: 15\n"
+        "점수F: 31\n"
+        "점수G: 36\n"
+        "점수H: 29\n"
+        "점수I: 41\n"
         "```"
     )
     await update.message.reply_text(msg, parse_mode="Markdown")
