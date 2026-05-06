@@ -49,7 +49,7 @@ function radarSVG(scores) {
     return `<circle cx="${x}" cy="${y}" r="4" fill="#2563EB"/>`;
   }).join("");
 
-  const labels = ["1번","2번","3번","4번","5번","6번","7번","8번","9번"];
+  const labels = ["A유형","B유형","C유형","D유형","E유형","F유형","G유형","H유형","I유형"];
   const lblEls = labels.map((lbl, i) => {
     const [x, y] = pt(i, 1.18);
     return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle"
@@ -69,6 +69,10 @@ function buildHTML() {
   const mainNum = (meta.main || "").replace("번", "");
   const wingNum = (meta.wing || "").replace("w", "");
   const subNum  = (meta.sub  || "").replace("번", "");
+  const ENNEAGRAM_TO_LETTER = {1:"I",2:"A",3:"B",4:"C",5:"D",6:"E",7:"F",8:"G",9:"H"};
+  const mainLetter = ENNEAGRAM_TO_LETTER[parseInt(mainNum)] || mainNum;
+  const wingLetter = ENNEAGRAM_TO_LETTER[parseInt(wingNum)] || wingNum;
+  const subLetter  = ENNEAGRAM_TO_LETTER[parseInt(subNum)]  || subNum;
 
   const letters   = "ABCDEFGHI".split("");
   const scoreVals = letters.map(k => Number(scores[k]) || 0);
@@ -162,7 +166,7 @@ body { font-family: 'Noto Sans CJK KR', 'Noto Sans KR', 'NanumGothic', sans-seri
           ${radarSVG(scores)}
           <table class="score-tbl">
             <tr><th>유형</th><th>점수</th></tr>
-            ${scoreVals.map((v,i) => `<tr><td><b>${i+1}번</b></td><td>${v}</td></tr>`).join("")}
+            ${scoreVals.map((v,i) => `<tr><td><b>${"ABCDEFGHI"[i]}유형</b></td><td>${v}</td></tr>`).join("")}
           </table>
         </div>
       </div>
@@ -177,9 +181,9 @@ body { font-family: 'Noto Sans CJK KR', 'Noto Sans KR', 'NanumGothic', sans-seri
     <table class="pers-tbl">
       <tr>
         <th>PERSONALITY</th>
-        <th>MAIN (${mainNum}번)</th>
-        <th>WING (${wingNum}번)</th>
-        <th>SUB (${subNum}번)</th>
+        <th>MAIN (${mainLetter}유형)</th>
+        <th>WING (${wingLetter}유형)</th>
+        <th>SUB (${subLetter}유형)</th>
       </tr>
       ${rowLabels.map((lbl,i) => {
         const row = (analysis.apti_table||{})[keyMap[i]] || {};
